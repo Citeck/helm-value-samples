@@ -1,1 +1,1822 @@
-## Values Sample initial commit
+###
+FQDN: "someco.citeck24.ru" # Доменное имя платформы.
+#==========================================================================================================#
+## @param clusterDomain Kubernetes Cluster Domain
+##
+clusterDomain: svc.cluster.local # Домен кластера Kubernets
+
+ingress:
+  enabled: false
+  apiVersion: networking.k8s.io/v1beta1 # Версия API для Ingress
+  secretName: "ingres-tls" # Имя Secret, содержащего TLS сертификат и ключ (включает файлы tls.key и tls.crt)
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  type: "" # Тип ingress
+  albIngress: # Использовать ALB Ingress контроллер
+    enabled: false
+  nginx:
+    proxyConnectTimeout: "60s" # annotations.nginx.ingress.kubernetes.io
+    proxyReadTimeout: "60s" # annotations.nginx.ingress.kubernetes.io
+    proxyBodySize: "100m" # annotations.nginx.ingress.kubernetes.io
+    proxyBufferSize: "64k" # annotations.nginx.ingress.kubernetes.io
+    proxyBusyBuffersSize: "64k" # Использовать alb ingress контроллер
+
+#==========================================================================================================#
+global:
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {} # метка для nodeSelector
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: [] # Параметры toleration для Pods
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+
+  vault:  # Включить дополнение аннотациями из .Values.global.vault.annotations
+    enabled: false
+    annotations: {}
+    jhipster:
+      password: "" # Пароль для регистрации микросервисов в ecos-registry (Depricated начиная с версии 2025.8)
+    keycloak:
+      appPassword: "" # Пароль администратора Keycloak (если не указан, используется значение из Secret ecos-identity-app-password)
+      psqlUsername: "" # Имя пользователя базы данных Keycloak (если не указано, используется значение из Secret ecos-identity-postgresql-app-username)
+      psqlPassword: "" # Пароль пользователя базы данных Keycloak (если не указано, используется значение из Secret ecos-identity-postgresql-app-password)
+    ecosPsql:
+      password: "" # Пароль PostgreSQL для ecos-postgresql-app (если не указан, используется значение из Secret ecos-postgresql-app-password)
+    microPsql:
+      password: "" # Пароль PostgreSQL для базы данных микросервисов (если не указан, используется значение из Secret ecos-microservices-postgresql-app-password)
+    mongo:
+      password: "" # Пароль MongoDB для ecos-mongodb-app (если не указан, используется значение из Secret ecos-mongodb-app-password)
+    proxy:
+      apiSecret: {}
+      clientSecret: "" # переменная окружения CLIENT_SECRET для ecos-proxy-app, если не задано, то ecos-proxy-client-secret из ecos-secret
+    zookeeper:
+      clientPassword: ""  # переменная окружения ZOO_CLIENT_PASSWORD для zookeeper, если не задано, то zookeeper-app-user-password из ecos-secret
+      serverPassword: ""  # переменная окружения ZOO_SERVER_PASSWORDS для zookeeper, если не задано, то zookeeper-app-server-user-passwords из ecos-secret
+
+#==========================================================================================================#
+  initContainers:
+    image:
+      registry: harbor.citeck.ru # Реестр init контейнера для микросервиса
+      repository: community/busybox-curl # Контейнер инициализации для микросервиса
+      tag: latest # Тэг контейнера инициализации для микросервиса
+      pullPolicy: {} # Политика загрузки образов для микросервисов
+
+#==========================================================================================================#
+  webapp:
+    properties:
+      webUrl: "" # Выставляет переменную окружения ECOS_WEBAPP_PROPERTIES_WEBURL. Данная переменная должна содержать адрес сервера. Нужно, например, для формировании правильных ссылок на карточки в уведомления.
+
+#==========================================================================================================#
+CiteckWebApps:
+  x509:
+    certs: []
+
+#==========================================================================================================#
+#====================================== Citeck CORE =======================================================#
+#==========================================================================================================#
+EcosAppsApp:
+  enabled: false
+  replicas: {}
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-apps-app-configmap # Имя ConfigMap для микросервисов
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  dataSource:
+    # Параметры подключения к базе данных. При использовании встроенной БД (EcosMicroservicesPostgresqlApp) значения берутся из ее конфигурации; при использовании внешней БД необходимо создать БД и указать параметры подключения
+    postgresql:
+      host: ""
+      port: ""
+      database: ""
+      username: ""
+      password: ""
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  ecosAppsImages: []
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-apps
+    tag: 2.0.0
+    pullPolicy: {}
+    pullSecrets: ""
+
+#==========================================================================================================#
+EcosModelApp:
+  enabled: false
+  replicas: {}
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-model-app-configmap # Имя ConfigMap для микросервисов
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  secret: #Настройка механизма шифрования secret'ов внутри Citeck. Подробнее https://citeck-ecos.readthedocs.io/ru/develop/general/Artifacts/ECOS_Secret.html#id5
+    encryption:
+      current:
+        key: "" # ecos-model-app-secret-encryption-current-key в ecos-secret. Ключ шифрования должен быть уникальный для каждого сервера.
+        algorithm: "" # переменная окружения ECOS_SECRET_ENCRYPTION_CURRENT_ALGORITHM в ecos-model-app
+        ivSize: "" # переменная окружения ECOS_SECRET_ENCRYPTION_CURRENT_IV_SIZE в ecos-model-app
+        tagSize: "" # переменная окружения ECOS_SECRET_ENCRYPTION_CURRENT_TAG_SIZE в ecos-model-app
+      previous:
+        key: "" # ecos-model-app-secret-encryption-previous-key в ecos-secret
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  client:
+    tls:
+      enabled: false # Включение TLS для клиента микросервисов
+  server:
+    tls:
+      enabled: false
+  # Параметры подключения к базе данных. При использовании встроенной БД (EcosMicroservicesPostgresqlApp) значения берутся из ее конфигурации; при использовании внешней БД необходимо создать БД и указать параметры подключения
+  dataSource:
+    postgresql:
+      host: ""
+      port: ""
+      database: ""
+      username: ""
+      password: ""
+  resources: |
+    limits:
+      cpu: 2
+      memory: 1Gi
+    requests:
+      cpu: 1
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-model
+    tag: 2.0.0
+    pullPolicy: {}
+    pullSecrets: ""
+
+#==========================================================================================================#
+EcosProcessApp:
+  enabled: false
+  replicas: {}
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-process-app-configmap # Имя ConfigMap для микросервисов
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  environments:
+    javaOpts: "-Xmx2G -Xms2G"
+    profilesActive: 'prod'
+    ecosCommands:
+      concurrentCommandConsumers: 4 # Параметр concurrentCommandConsumers для ecos-integrations-app и ecos-process-app
+      commandTimeoutMs: 60000 # Параметр commandTimeoutMs для ecos-integrations-app и ecos-process-app
+      listenBroadcast: true # Параметр listenBroadcast для ecos-integrations-app и ecos-process-app
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  dataSource:
+    # Параметры подключения к базе данных. При использовании встроенной БД (EcosMicroservicesPostgresqlApp) значения берутся из ее конфигурации; при использовании внешней БД необходимо создать БД и указать параметры подключения
+    postgresql:
+      eproc: # Параметры подключения ecos-process-app к БД EPROC
+        host: ""
+        port: ""
+        database: ""
+        username: ""
+        password: ""
+    mongodb: # Параметры подключения к MongoDB для ecos-history-app и ecos-process-app
+      host: ""
+      port: ""
+      database: ""
+      username: ""
+      password: ""
+  resources: |
+    limits:
+      cpu: 1
+      memory: 3Gi
+    requests:
+      cpu: 1
+      memory: 3Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-process
+    tag: 2.0.0
+    pullPolicy: {}
+    pullSecrets: ""
+
+#==========================================================================================================#
+EcosGatewayApp:
+  name: EcosGatewayApp
+  enabled: false
+  replicas: {}
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-gateway-app-configmap # Имя ConfigMap для микросервисов
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  # Параметры подключения к базе данных. При использовании встроенной БД (EcosMicroservicesPostgresqlApp) значения берутся из ее конфигурации; при использовании внешней БД необходимо создать БД и указать параметры подключения
+  dataSource:
+    postgresql:
+      host: ""
+      port: ""
+      database: ""
+      username: ""
+      password: ""
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 500Mi
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-gateway
+    tag: 2.0.0
+    pullPolicy: {}
+    pullSecrets: ""
+
+#==========================================================================================================#
+EcosHistoryApp:
+  enabled: false
+  replicas: {}
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-history-app-configmap
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  # Параметры подключения к базе данных. При использовании встроенной БД (EcosMicroservicesPostgresqlApp) значения берутся из ее конфигурации; при использовании внешней БД необходимо создать БД и указать параметры подключения
+  dataSource:
+    postgresql:
+      host: ""
+      port: ""
+      database: ""
+      username: ""
+      password: ""
+    mongodb:
+      host: ""
+      port: ""
+      database: ""
+      username: ""
+      password: ""
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 300m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-history
+    tag: 2.0.0
+    pullPolicy: {}
+    pullSecrets: ""
+
+#==========================================================================================================#
+EcosNotificationsApp:
+  enabled: false
+  replicas: {}
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-notifications-app-configmap # Имя ConfigMap для микросервисов
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  environments:
+    firebaseAdminSdk: "" # Токен firebase для отправки пуш уведомления в мобильное приложение
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+    # Настройки почтового сервера. Для тестовой среды можно указать настройки Mailhog
+    mail:
+      host: ""
+      port: ""
+      username: ""
+      password: ""
+      protocol: ""
+    email: #Опциональная настройка. В случае, если значение в fixed будет указано, то будут игнорироваться кастомные значения from в конкретной sendTask.
+      from:
+        fixed: ""
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+    # Параметры подключения к базе данных. При использовании встроенной БД (EcosMicroservicesPostgresqlApp) значения берутся из ее конфигурации; при использовании внешней БД необходимо создать БД и указать параметры подключения
+  dataSource:
+    postgresql:
+      host: ""
+      port: ""
+      database: ""
+      username: ""
+      password: ""
+    zookeeper:
+      enabled: false
+      host: ""
+      port: "" # ecos.zookeeper.port для ecos-app
+      namespace: ""
+      curator:
+        retryPolicy:
+          baseSleep: ""
+          maxRetries: ""
+  resources: |
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-notifications
+    tag: 2.0.0
+    pullPolicy: {}
+    pullSecrets: ""
+
+#==========================================================================================================#
+EcosProxyApp:
+  enabled: false
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  replicas: {}
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  resources: |
+    limits:
+      cpu: 1
+      memory: 512Mi
+    requests:
+      cpu: 300m
+      memory: 256Mi
+  logging:
+    level: "warn" # уровень логировани для ecos-proxy-app
+    logFormat: "main" # формат логов ecos-proxy-app, по умолчанию main (формирование переменной ENABLE_LOGGING)
+  DefaultLocation: {}
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-proxy-oidc
+    tag: 2.0.0
+    pullPolicy: {}
+    pullSecrets: ""
+  server:
+    tls:
+      enabled: false # включение SSL для сервера на микросервисах
+      keyCertSecret: '' # секрет ключа cерификата
+  client:
+    maxBodySize: "" # задает переменную окружения CLIENT_MAX_BODY_SIZE для ecos-proxy-app
+  proxyTargets:
+    ecosTarget:
+      service: "" # формирует переменную окружения PROXY_TARGET для ecos-proxy-app
+      port: "" # формирует переменную окружения PROXY_TARGET для ecos-proxy-app
+    gatewayTarget:
+      enabled: true # включение установки переменной окружения GATEWAY_TARGET для ecos-proxy-app, включает gateway-target
+      service: "" # одна из частей переменной окружения GATEWAY_TARGET для ecos-proxy-app, включает gateway-target
+      port: "" # одна из частей переменной окружения GATEWAY_TARGET для ecos-proxy-app, включает gateway-target
+      tls:
+        enabled: false # настройки TLS для gateway-target
+        certificate: '/tmp/certs/gateway.cer' # настройки TLS для gateway-target
+        name: '' # настройки TLS для gateway-target
+  eisIntegration:
+    enabled: false # установка переменной окружения USE_EXTERNAL_AUTH в ecos-app + все что нужно для интеграции с Kecloak (EcosIdentityApp)
+    clientID: "" # переменная окружения CLIENT_ID для ecos-proxy-app для интеграции с Kecloak (EcosIdentityApp)
+    eisID: "" # переменная окружения EIS_ID для ecos-proxy-app для интеграции с Kecloak (EcosIdentityApp)
+    realmID: "" # переменная окружения REALM_ID для ecos-proxy-app для интеграции с Kecloak (EcosIdentityApp)
+    clientSecret: "" # client secret для ecos-proxy-app для интеграции с Kecloak (EcosIdentityApp)
+    api:
+      enabled: false # включение API ecos-proxy-app
+      clientID: "" # clientID API ecos-proxy-app
+      clientSecret: "" # clientSecret API ecos-proxy-app
+  nginxResolver: {}
+  gatewayPublicEndpointsEnabled: false # значение переменной окружения GATEWAY_PUBLIC_ENDPOINTS_ENABLED для ecos-proxy-app
+  htmlScriptImportsBase64: "" # значение переменной окружения HTML_SCRIPT_IMPORTS_BASE64 для ecos-proxy-app
+
+#==========================================================================================================#
+EcosTransformationsApp:
+  name: EcosTransformationsApp
+  enabled: false
+  replicas: 1
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-transformations-app-configmap
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-transformations
+    tag: 1.0.0
+    pullSecrets: ""
+
+#==========================================================================================================#
+EcosUiservApp:
+  enabled: false
+  replicas: {}
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-uiserv-app-configmap
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  dataSource:
+    postgresql:
+      host: ""
+      port: ""
+      database: ""
+      username: ""
+      password: ""
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 300m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-uiserv
+    tag: 2.0.0
+    pullPolicy: {}
+    pullSecrets: ""
+
+#==========================================================================================================#
+#====================================== Citeck CORE Extensions ============================================#
+#==========================================================================================================#
+EcosContentApp:
+  name: EcosContentApp
+  enabled: false
+  replicas: 1
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-content-app-configmap
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: enterprise/ecos-content
+    tag: 1.0.0
+    pullSecrets: enterprise-registry
+
+#==========================================================================================================#
+EcosEdiApp:
+  name: EcosEdiApp
+  enabled: false
+  replicas: 1
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-edi-app-configmap
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  dataSource:
+    postgresql: # параметры БД для соответствующего микросервиса
+      host: ""
+      port: ""
+      database: ""
+      username: ""
+      password: ""
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: enterprise/ecos-edi
+    tag: 1.0.0-snapshot
+    pullSecrets: ""
+
+#==========================================================================================================#
+EcosIntegrationsApp:
+  name: EcosIntegrationsApp
+  enabled: false
+  replicas: {}
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-integrations-app-configmap
+  ftpsUploader:
+    enable: false # Включение контейнера ftps-uploader в ecos-integrations-app
+    image:
+      registry: harbor.citeck.ru # регистр образа контейнера ftps-uploader в ecos-integrations-app
+      repository: infrastructure/integration-uploader # образ контейнера ftps-uploader в ecos-integrations-app
+      tag: 0.0.1 # тэг образа контейнера ftps-uploader в ecos-integrations-app
+      pullPolicy: IfNotPresent # политика загрузки образа контейнера ftps-uploader в ecos-integrations-app
+    environments: # параметры контейнера ftps-uploader в ecos-integrations-app
+      ftpsHost: ""
+      ftpsPort: ""
+      credentialSecret: ""
+      localRootDir: "/opt/export"
+      remoteRootDir: "/"
+      timer: "300"
+    resources: |
+      limits:
+        cpu: 300m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    persistence: # параметры контейнера ftps-uploader в ecos-integrations-app
+      size: "1Gi"
+      accessModes: "ReadWriteOnce"
+      storageClassName: ""
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  import:
+    certs:
+      enabled: false
+      configMap: {}
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+    ecosCommands:
+      concurrentCommandConsumers: 4
+      commandTimeoutMs: 60000
+      listenBroadcast: true
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  dataSource:
+    postgresql:
+      host: ""
+      port: ""
+      database: ""
+      username: ""
+      password: ""
+    zookeeper:
+      enabled: false
+      host: ""
+      posrt: ""
+      namespace: ""
+      curator:
+        retryPolicy:
+          baseSleep: ""
+          maxRetries: ""
+  resources: |
+    limits:
+      cpu: 1
+       memory: 1Gi
+    requests:
+      cpu: 300m
+       memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: enterprise/ecos-integrations
+    tag: 2.0.0
+    pullPolicy: {}
+    pullSecrets: ""
+
+#==========================================================================================================#
+#====================================== Citeck Additional =================================================#
+#==========================================================================================================#
+### Модуль доверенности - https://citeck-ecos.readthedocs.io/ru/latest/introduction/ecos_modules/poa.html
+EcosPowerAttorneysApp:
+  name: EcosPowerAttorneysApp
+  enabled: false
+  replicas:
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-power-of-attorneys-app-configmap
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-power-of-attorneys
+    tag: 1.0.0-snapshot
+    pullSecrets: ""
+
+#==========================================================================================================#
+### Модуль для обработки входящих писем (требуется для модулей ServiceDesk и CRM)
+EcosEcomApp:
+  name: EcosEcomApp
+  enabled: false
+  replicas: 1
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-ecom-app-configmap
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-ecom
+    tag: 0.0.4
+    pullSecrets: ""
+
+#==========================================================================================================#
+### Модуль Service Desk - https://citeck-ecos.readthedocs.io/ru/latest/introduction/ecos_modules/service_desk.html
+EcosServiceDeskApp:
+  name: EcosServiceDeskApp
+  enabled: false
+  replicas:
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-service-desk-configmap
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-service-desk
+    tag: 1.4.0
+    pullSecrets: ""
+
+#==========================================================================================================#
+### Модуль управления проектами - https://citeck-ecos.readthedocs.io/ru/latest/introduction/ecos_modules/ept.html#project-tracker
+EcosProjectTrackerApp:
+  name: EcosProjectTrackerApp
+  enabled: false
+  replicas:
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-project-tracker-configmap
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-project-tracker
+    tag: 1.0.0-snapshot
+    pullSecrets: ""
+
+#==========================================================================================================#
+### Опциональный модуль для интеграции ИИ ассистента
+EcosAiApp:
+  name: EcosAiApp
+  enabled: false
+  replicas: 1
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-ai-app-configmap
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  resources: |
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: enterprise/ecos-ai
+    tag: 1.0.0-snapshot
+    pullSecrets: enterprise-registry
+
+#==========================================================================================================#
+#====================================== 3rd Party / Infrastructure ========================================#
+#==========================================================================================================#
+### Keycloak
+EcosIdentityApp:
+  enabled: false
+  highAvailability:
+    enabled: false # включение HA для ecos-identity-app
+  changeLegacyPaths:
+    enabled: false # Меняет команду запуска keycloak на одну из вариаций, если включено legacyStartCmd.enabled
+  legacyStartCmd:
+    enabled: false # Включает изменение команды запуска для keycloak, для каких целей не знаю
+  replicas: {}
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  environments:
+    username: ""
+    password: ""
+    frontendURL: {}
+    logLevel: {}
+    clientSecret: {}
+  KerberosIntegration:
+    enabled: false # включение интеграции keycloak с kerberos
+    domainRealm: {}
+    keytabBase64Encoded: {}
+  customTheme:
+    enabled: false # включение кастомизации тем в keycloak
+    image:
+      registry: nexus.citeck.ru # регистр для образа с кастомными темами
+      repository: keycloak-ecos-theme # образ с кастомными темами
+      tag: 0.0.3 # тэг образа кастомных тем
+  ecosExtensions:
+    enabled: false # включение расширений ecos для keycloak
+    listenPersonDisabledStatus: false # переменная окружения ECOS_KK_LISTEN_PERSON_DISABLED_STATUS для расширения ecos для keycloak
+    image:
+      repository: core/ecos-keycloak-ext
+      tag: 12.0.1.2
+  import:
+    certs:
+      enabled: false # включение realm-export.json в настройках ecos-identity-app
+      configMap: ""
+    realm:
+      enabled: true
+  resources: |
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/keycloak # Docker образ Keycloak с расширениями ECOS
+    tag: 11.0.2 # тэг образа ecos для keycloak
+    pullPolicy: {}
+    pullSecrets: ""
+  dataSource:
+    postgresql:
+      host: ""
+      port: ""
+      database: ""
+      username: ""
+      password: ""
+
+#==========================================================================================================#
+### Fake SMPT сервер - только для тестовых окружений.
+MailhogApp:
+  enabled: false
+  replicas: {} # количество реплик для микросервисов
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  environments:
+    username: "" # локальный администратор для микросервиса, к которому прибита переменная
+    password: "" # пароль локального администратора для микросервиса к которому прибита переменная
+  resources: |
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 128Mi
+  image:
+    registry: harbor.citeck.ru # Реестр образов для микросервисов
+    repository: community/mailhog # Образ микросервиса
+    tag: latest # тэг образа микросервиса
+    pullPolicy: {}
+    pullSecrets: "" # secret для доступа к реестрам
+
+#==========================================================================================================#
+### Начиная с версии 2025.8 - Deprecated. В версии 2025.8 нужнен только до момента миграции старых данных из MongoDB в PostgreSQL
+MongoDBApp:
+  enabled: false
+  replicas: {}
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  environments:
+    username: ""
+    password: ""
+    databases:
+      ecosProcessApp:
+        database: ecos-process
+        username: ecos-process
+        password: ecos-process-password
+      ecosHistoryApp:
+        database: ecos-history
+        username: ecos-history
+        password: ecos-history-password
+  resources: |
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 300m
+      memory: 512Mi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/mongo
+    tag: 4.0-oi
+    pullPolicy: {}
+    pullSecrets: ""
+  service:
+    nodePort: ""
+  persistence:
+    enabled: false
+    storageClass: ""
+    accessModes: ""
+    size: 10Gi
+    existingClaim: ""
+
+#==========================================================================================================#
+OnlyOfficeApp:
+  name: OnlyOfficeApp
+  enabled: false
+  replicas: 1
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  onlyofficeTargets:
+    service: {}
+    port: {}
+  environments:
+    jwtEnabled: false # Включение JWT-аутентификации для OnlyOffice
+    allowPrivateIpAddress: true # ALLOW_PRIVATE_IP_ADDRESS для onlyoffice-app
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  resources: |
+    limits:
+      cpu: 1
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 2Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/onlyoffice/documentserver
+    tag: latest
+    pullSecrets: ""
+
+#==========================================================================================================#
+### Может быть заменена внешней PosgreSQL
+EcosMicroservicesPostgresqlApp:
+  enabled: false
+  metrics:
+    export:
+      prometheus:
+        enabled: false # включение экспорта метрик в prometheus для микросервисов
+        image: quay.io/prometheuscommunity/postgres-exporter:v0.15.0 # образ для сборщика метрик ecos-microservices-postgresql-app
+        port: 9187 # порт экспорта метрик ecos-microservices-postgresql-app
+  replicas: ""
+  nodeSelector: "" # Метка для nodeSelector
+  environments:
+    sharedMemorySize: 256Mi # размер раздела /dev/shm postgresql в microservices-postgresql-app
+    username: ""
+    password: ""
+    databases:
+      ecosAppsApp:
+        database: ecos_apps # параметры подключения к БД для ecos-uiserv-app
+        username: apps
+        password: appspassword
+      ecosGatewayApp:
+        database: ecos_gateway # параметры подключения к БД для ecos-uiserv-app
+        username: gateway
+        password: gatewaypassword
+      ecosUiservApp:
+        database: ecos_uiserv # параметры подключения к БД для ecos-uiserv-app
+        username: uiserv
+        password: uiservpassword
+      ecosNotificationsApp: # параметры подключения к БД для ecos-notifications-app
+        database: ecos_notifications
+        username: notifications
+        password: notificationspassword
+      ecosHistoryApp: # параметры подключения к MongoDB для ecos-history-app
+        database: ecos_history
+        username: history
+        password: historypassword
+      ecosIntegrationsApp: # параметры подключения к БД для ecos-integration-app
+        database: ecos_integrations
+        username: integrations
+        password: integrationspassword
+      ecosModelApp:
+        database: ecos_model
+        username: model
+        password: modelpassword
+      ecosJiraReportsApp:
+        database: ecos_jira_reports
+        username: reports
+        password: reportspassword
+      ecosCasemodelApp:
+        database: ecos_casemodel
+        username: casemodel
+        password: casemodelpassword
+      ecosIdentityApp:
+        database: ecos_identity
+        username: eis # ecos-identity-postgresql-app-username в ecos-secret
+        password: eispassword # ecos-identity-postgresql-app-password в ecos-secret
+      ecosProcessApp: # параметры подключения к MongoDB для ecos-process-app
+        database: ecos_process
+        username: process
+        password: processpassword
+      ecosCamundaApp: # параметры подключения к БД Camunda
+        database: ecos_camunda
+        username: camunda
+        password: camundapassword
+      ecosEdiApp: # параметры подключения к БД EDI
+        database: ecos_edi
+        username: edi
+        password: edipassword
+    vault:
+      enabled: false
+  config:
+    maxConnections: "" # параматр max_connections в конфигурации microservices-postgresql-app
+    maxPreparedTransactions: "" # параметр max_prepared_transactions в конфигурации microservices-postgresql-app
+    sharedBuffers: "" # параметр shared_buffers в конфигурации microservices-postgresql-app
+    effectiveCacheSize: "" # параметр effective_cache_size в конфигурации microservices-postgresql-app
+    workMem: "" # параметр work_mem в конфигурации microservices-postgresql-app
+    maintenanceWorkMem: "" # параметр maintenance_work_mem в конфигурации microservices-postgresql-app
+    maxWalSize: "" # параметр max_wal_size в конфигурации microservices-postgresql-app
+    minWalSize: "" # параметр min_wal_size в конфигурации microservices-postgresql-app
+    maxWorkerProcesses: "" # параметр max_worker_processes в конфигурации microservices-postgresql-app
+    maxParallelWorkers: "" # параметр max_parallel_workers в конфигурации microservices-postgresql-app
+    maxParallelWorkersPerGather: "" # параметр max_parallel_workers_per_gather в конфигурации microservices-postgresql-app
+    maxParallelMaintenanceWorkers: "" # параметр max_parallel_maintenance_workers в конфигурации microservices-postgresql-app
+    autovacuumVacuumCostLimit: "" # параметр autovacuum_vacuum_cost_limit в конфигурации microservices-postgresql-app
+    autovacuumNaptime: "" # параметр autovacuum_naptime в конфигурации microservices-postgresql-app
+    vacuumFreezeMinAge: "" # параметр vacuum_freeze_min_age в конфигурации microservices-postgresql-app
+    vacuumFreezeTableAge: "" # параметр vacuum_freeze_table_age в конфигурации microservices-postgresql-app
+    vacuumMultixactFreezeMinAge: "" # параметр vacuum_multixact_freeze_min_age в конфигурации microservices-postgresql-app
+    vacuumMultixactFreezeTableAge: "" # параметр vacuum_multixact_freeze_table_age в конфигурации microservices-postgresql-app
+    logAutovacuumMinDuration: "" # параметр log_autovacuum_min_duration в конфигурации microservices-postgresql-app
+    jit: "" # параметр jit в конфигурации microservices-postgresql-app
+    shared_preload_libraries: "" # параметр shared_preload_libraries в конфигурации microservices-postgresql-app
+  resources: |
+    limits:
+      cpu: 2
+      memory: 1Gi
+    requests:
+      cpu: 1
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/postgres
+    tag: 12-oi
+    pullPolicy: {}
+    pullSecrets: ""
+  service:
+    nodePort: {}
+  persistence:
+    enabled: false
+    storageClass: ""
+    accessModes: ""
+    size: 10Gi
+    existingClaim: ""
+
+#==========================================================================================================#
+RabbitmqApp:
+  enabled: false
+  clearData: false
+  replicas: ""
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  plugins:
+    shovel:
+      enabled: false # включение плагина shovel в rabbitmq
+  metrics:
+    prometheus:
+      enabled: false # включение экспорта метрик в prometheus для микросервисов
+  environments:
+    username: ""
+    password: ""
+    defaultVHost: "" # Virtual Host по умолчанию для Rabbitmq если не задан то будет '/'
+    integrations:
+      finance:
+        enabled: true # включение отключение VirtualHost rabbitmq для finance
+        defaultVHost: "" # Virtual Host finance для Rabbitmq если не задан то будет 'finance'
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  tls: # параметры TLS для Rabbitmq
+    enabled: false
+    trustedCa:
+      secretName: ecos-tls-secret
+      keyName: trusted-ca
+    keySecret:
+      secretName: ecos-tls-secret
+      keyName: rabbitmq-app-tls
+    port: 5671
+    verifyPeer: verify_peer
+    failIfNoPeerCert: true
+  service:
+    amqp: "" # порт AMQP Rabbitmq, если не задано используется 5672
+    amqps: 5671 # порт AMQPS Rabbitmq
+    managment: ""
+    nodePort: "" # Service nodePort для Rabbitmq
+  ingress:
+    enabled: true # включение ingress для Rabbit и Minio
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-rabbitmq
+    tag: 3.12.12-management
+    pullPolicy: {}
+    pullSecrets: ""
+  persistence:
+    enabled: false
+    storageClass: ""
+    accessModes: ""
+    size: 10Gi
+    existingClaim: ""
+#==========================================================================================================#
+### Depricated. Начиная с версии 2025.8 не нужен.
+EcosRegistryApp:
+  enabled: false
+  replicas: {}
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod,k8s'
+    adminPassword: "" # ecos-registry-app-admin-password в ecos-secret
+    base64Secret: {}
+  dataSource:
+    rabbitmq: # параметры подключения к rabbitmq для ecos-notifications-app ecos-history-app ecos-registry-app
+      host: ""
+      port: ""
+      username: ""
+      password: ""
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 300m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/jhipster-registry
+    tag: v4.1.1
+    pullPolicy: {}
+    pullSecrets: ""
+#==========================================================================================================#
+ZookeeperApp:
+  enabled: false
+  replicas: 1
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  service:
+    followerPort: 2888 # переменная окружения ZOO_SERVERS для zookeeper
+    electionPort: 3888 # переменная окружения ZOO_SERVERS для zookeeper
+    publishNotReadyAddresses: false # включение publishNotReadyAddresses для zookeeper
+    tls:
+      clientEnable: false # включить TLS у клиента zookeeper (пекременная окружения ZOO_TLS_CLIENT_ENABLE)
+      quorumEnable: false # включение Quorum TLS для zookeeper
+      disableBaseClientPort: false # выключить проброс не tls клиентского порта для zookeeper
+      clientPort: 3181 # номер клиентского порта tls для zookeeper
+      clientKeystorePath: /tls_key_store/key_store_file # переменная ZOO_TLS_CLIENT_KEYSTORE_FILE для zookeeper (файл хранилища ключей для TLS для клиента)
+      clientKeystorePassword: '' # ZOO_TLS_CLIENT_KEYSTORE_PASSWORD для Zookeeper (пароль хранилища ключей TLS)
+      clientTruststorePath: /tls_trust_store/trust_store_file # переменная ZOO_TLS_CLIENT_TRUSTSTORE_FILE для zookeeper (файл хранилища сертификатов для TLS для клиента)
+      clientTruststorePassword: '' # переменная ZOO_TLS_CLIENT_TRUSTSTORE_PASSWORD для zookeeper (пароль файла хранилища сертификатов для TLS для клиента)
+      quorumKeystorePath: /tls_key_store/key_store_file # переменная ZOO_TLS_QUORUM_KEYSTORE_FILE для zookeeper (файл хранилища ключей для TLS для кластера)
+      quorumKeystorePassword: '' # переменная ZOO_TLS_QUORUM_KEYSTORE_PASSWORD для zookeeper (пароль файла хранилища ключей для TLS для кластера)
+      quorumTruststorePath: /tls_trust_store/trust_store_file # переменная ZOO_TLS_QUORUM_TRUSTSTORE_FILE для zookeeper (файл хранилища сертификатов для TLS для кластера)
+      quorumTruststorePassword: '' # переменная ZOO_TLS_QUORUM_TRUSTSTORE_PASSWORD для zookeeper (пароль файла хранилища сертификатов для TLS для кластера)
+  environments:
+    dataLogDir: '' # переменная окружения ZOO_DATA_LOG_DIR для zookeeper
+    port: {}
+    tickTime: {}
+    initLimit: {}
+    syncLimit: {}
+    maxClientCnxns: {}
+    fourlwCommandsWhitelist: srvr, mntr, ruok # переменная окружения ZOO_DATA_LOG_DIR для zookeeper
+    listenOnAllIPs: false # переменная окружения ZOO_LISTEN_ALLIPS_ENABLED для zookeeper
+    autopurge:
+      purgeInterval: 1 # переменная окружения ZOO_AUTOPURGE_INTERVAL для zookeeper
+      snapRetainCount: "" # переменная окружения ZOO_AUTOPURGE_RETAIN_COUNT для zookeeper
+    maxSessionTimeout: "" # переменная окружения ZOO_MAX_SESSION_TIMEOUT для zookeeper
+    minServerId: "" # переменная окружения ZOO_SERVERS для zookeeper
+    auth:
+      enabled: false # переменная окружения ZOO_ENABLE_AUTH в yes если включено + ZOO_CLIENT_USER и ZOO_CLIENT_PASSWORD для zookeeper
+      clientUser: "" # переменная окружения ZOO_CLIENT_USER для zookeeper
+      clientPassword: "" # переменная окружения ZOO_CLIENT_PASSWORD для zookeeper
+      serverUsers: "" # переменная окружения ZOO_SERVER_USERS для zookeeper
+      serverPasswords: "" # задает zookeeper-app-server-user-passwords в ecos-secret
+    logLevel: ERROR # переменная окружения ZOO_LOG_LEVEL для zookeeper
+    allowAnonymousLogin: true # переменная окружения ALLOW_ANONYMOUS_LOGIN для zookeeper
+    jvmFlags: {}
+    heapSize: 512 # переменная окружения ZOO_HEAP_SIZE для zookeeper
+  livenessProbe: # параметры livenessProbe для микросервиса
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+    probeCommandTimeout: 2
+  readinessProbe: # параметры readinessProbe для zookeeper
+    enabled: true # включение readinessProbe для zookeeper
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+    probeCommandTimeout: 2
+  resources: |
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 300m
+      memory: 512Mi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/zookeeper
+    tag: 3.6.2-debian-10-r124
+    pullPolicy: {}
+    pullSecrets: ""
+  securityContext:
+    runAsUser: 1001
+    fsGroup: 1001
+  persistence:
+    enabled: false
+    volumePermissions:
+      enabled: false  # инициализация persistent хранилища для zookeeper
+    storageClass: ""
+    accessModes: ""
+    size: 10Gi
+    existingClaim: ""
+#==========================================================================================================#
+### Может быть заменён на любое внешнее S3 совместимое хранилище
+Minio:
+  enabled: false
+  replicas: 1
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  image:
+    registry: minio
+    repository: minio
+    tag: RELEASE.2023-06-29T05-12-28Z
+    pullPolicy: Always
+    imagePullSecrets: ""
+  persistence:
+    enabled: false
+    volumePermissions:
+      enabled: false
+    storageClass: {}
+    accessModes: {}
+    size: 10Gi
+    existingClaim: {}
+  resources: # лимиты resources для соответствующего микросервиса
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  dnsPolicy: ClusterFirst # Политика разрешения DNS для микросервисов
+  ingress:
+    enabled: false
+    host: "" # имя хоста для доступа в webui minio
+    secretName: minio-sqd # secretName для ЕДЫ сертификата при использовании своего серта
+  params:
+    minioRootUser: "" # установка перменной ECOS_SECRET_CONTENT_STORAGE_S3_CREDENTIALS_USERNAME для ecos-content-app, если не задано берется из minio_root_user ecos-secret
+    minioRootPassword: "" # установка перменной ECOS_SECRET_CONTENT_STORAGE_S3_CREDENTIALS_PASSWORD для ecos-content-app, если не задано берется из minio_root_password ecos-secret
+
+#==========================================================================================================#
+#====================================== Monitoring ========================================================#
+#==========================================================================================================#
+EcosMicroservicesPostgresqlExporterApp:
+  enabled: false
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  image:
+    registry: harbor.citeck.ru
+    repository: quay.io/prometheuscommunity/postgres-exporter
+    tag: v0.15.0
+    pullPolicy: { }
+    pullSecrets: ""
+  dataSource:
+    uri: ecos-microservices-postgresql-app-service.default.svc.cluster.local:5432/?sslmode=disable
+    user:
+
+#==========================================================================================================#
+#====================================== Audit =============================================================#
+#==========================================================================================================#
+### Опциональный инструмент отправки данных аутдита во внешнюю систему хранения/обработки
+VectorApp:
+  enabled: false # включение API для vector-app
+  configMap: vector-app-configmap
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  image:
+    registry: harbor.citeck.ru
+    repository: core/citeck-vector
+    tag: 0.25.0-1
+    pullPolicy: ''
+    pullSecrets: ""
+  customConfig: {}
+  api:
+    enabled: true
+  resources: |
+    limits:
+      cpu: 100m
+      memory: 100Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+
+#==========================================================================================================#
+#====================================== Demo данные========================================================#
+#==========================================================================================================#
+### В случае планов по развертыванию системы без демо данных - исключить
+EcosDemoDataApp:
+  name: EcosDemoDataApp
+  enabled: false
+  replicas: 1
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  ## Affinity for pod assignment (evaluated as template)
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ##
+  affinity: {}
+  configMap: ecos-demo-data-app-configmap
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+  import:
+    certs:
+      enabled: false
+      configMap: ""
+  environments:
+    javaOpts: "-Xmx256m -Xms256m"
+    profilesActive: 'prod'
+  client:
+    tls:
+      enabled: false
+  server:
+    tls:
+      enabled: false
+  resources: |
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+  image:
+    registry: harbor.citeck.ru
+    repository: core/ecos-demo-data
+    tag: 1.0.0
+    pullSecrets: ""
